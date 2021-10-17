@@ -28,8 +28,8 @@ done
 
 ARGS=""
 for var in $(jq -r '.params[] | @base64 // empty' /tmp/input); do
-  KEY=$(echo ${var} | base64 --decode | jq -r '. | keys[0]')
-  VALUE=$(echo ${var} | base64 --decode | jq -r .${KEY})
+  KEY=$(echo ${var} | base64 -d | jq -r '. | keys[0]')
+  VALUE=$(echo ${var} | base64 -d | jq -r .${KEY})
   ARGS="$ARGS -var='$KEY=$VALUE'"
 done
 
