@@ -6,11 +6,6 @@ jq . < /dev/stdin > /tmp/input
 
 SRC=$1
 
-export AWS_ACCESS_KEY_ID=$(jq -r '.source.aws_access_key_id // empty' < /tmp/input)
-export AWS_SECRET_ACCESS_KEY=$(jq -r '.source.aws_secret_access_key // empty' < /tmp/input)
-export AWS_DEFAULT_REGION=$(jq -r '.source.region // empty' < /tmp/input)
-
-
 TEMPLATE=$(jq -r '.params.template // empty' /tmp/input)
 if [ -z "$TEMPLATE" ]; then
   echo "Template file path not provided:" >&2
@@ -23,12 +18,12 @@ fi
 echo "Using Packer template file $SRC/$TEMPLATE"
 
 PROVISIONER_FILES=$(jq -r '.params.provisioner_files // empty | if type =="array" then .[] else . end' /tmp/input)
-for FILE in $FILES; do
-  if [ ! -f "$SRC/$FILE" ]; then
-    echo "Provisioner file $SRC/$FILE not found" >&2
+for PROVISIONER_FILE in $PROVISIONER_FILES; do
+  if [ ! -f "$SRC/$PROVISIONER_FILE" ]; then
+    echo "Provisioner file $SRC/$PROVISIONER_FILE not found" >&2
     exit 1
   fi
-  echo "Using provisioner file $SRC/$FILE"
+  echo "Using provisioner file $SRC/$PROVISIONER_FILE"
 done
 
 ARGS=""
@@ -38,13 +33,13 @@ for VAR in $VARS; do
   ARGS="$ARGS -var='$VAR'"
 done
 
-FILES=$(jq -r '.params.var_files // empty | if type =="array" then .[] else . end' /tmp/input)
-for FILE in $FILES; do
-  if [ ! -f "$SRC/$FILE" ]; then
-    echo "var_file $SRC/$FILE not found" >&2
+VAR_FILES=$(jq -r '.params.var_files // empty | if type =="array" then .[] else . end' /tmp/input)
+for VAR_FILE in $VAR_FILES; do
+  if [ ! -f "$SRC/$VAR_FILE" ]; then
+    echo "var_file $SRC/$VAR_FILE not found" >&2
     exit 1
   else
-    ARGS="$ARGS -var-file=$SRC/$FILE"
+    ARGS="$ARGS -var-file=$SRC/$VAR_FILE"
   fi
 done
 
