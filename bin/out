@@ -23,7 +23,7 @@ for PROVISIONER_FILE in $PROVISIONER_FILES; do
     echo "Provisioner file $SRC/$PROVISIONER_FILE not found" >&2
     exit 1
   fi
-  echo "Using provisioner file $SRC/$PROVISIONER_FILE"
+  echo "Adding provisioner file $SRC/$PROVISIONER_FILE"
 done
 
 ARGS=""
@@ -31,6 +31,7 @@ for var in $(jq -r '.params.vars | keys[] | @base64 // empty' /tmp/input); do
   KEY=$(echo ${var} | base64 -d)
   VALUE=$(jq -r .params.vars.${KEY} /tmp/input)
   ARGS="$ARGS -var='$KEY=$VALUE'"
+  echo "Setting variable $KEY=$VALUE"
 done
 
 # jq '.params|del(.template,provisioner_files,.var_files) // empty' /tmp/input > /tmp/vars.json
@@ -55,9 +56,13 @@ done
 
 cd $(dirname $SRC/$TEMPLATE)
 
+echo
+echo "Running: packer validate $ARGS $SRC/$TEMPLATE"
 packer validate $ARGS $SRC/$TEMPLATE
 # packer validate $ARGS -var-file=/tmp/vars.json $SRC/$TEMPLATE
 
+echo
+echo "Running: packer build -machine-readable $ARGS $SRC/$TEMPLATE | tee /tmp/output | awk -F, '/,ui,/ { print $5 }' | sed -u 's#%!(PACKER_COMMA)#,#g;s#\\n#\n#g'"
 packer build -machine-readable $ARGS $SRC/$TEMPLATE \
 # packer build -machine-readable $ARGS -var-file=/tmp/vars.json $SRC/$TEMPLATE \
   | tee /tmp/output | awk -F, '/,ui,/ { print $5 }' | sed -u 's#%!(PACKER_COMMA)#,#g;s#\\n#\n#g'
