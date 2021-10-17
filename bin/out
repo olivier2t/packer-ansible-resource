@@ -27,9 +27,9 @@ for PROVISIONER_FILE in $PROVISIONER_FILES; do
 done
 
 ARGS=""
-for var in $(jq -r '.params.vars[] | @base64 // empty' /tmp/input); do
-  KEY=$(echo ${var} | base64 -d | jq -r '. | keys[0]')
-  VALUE=$(echo ${var} | base64 -d | jq -r .${KEY})
+for var in $(jq -r '.params.vars | keys[] | @base64 // empty' /tmp/input); do
+  KEY=$(echo ${var} | base64 -d)
+  VALUE=$(jq -r .params.vars.${KEY} /tmp/input)
   ARGS="$ARGS -var='$KEY=$VALUE'"
 done
 
