@@ -41,8 +41,8 @@ ARGS=""
 for var in $(jq '.params.vars | to_entries[] | @base64 // empty' /tmp/input); do
   KEY=$(echo ${var} | base64 -d | jq -r '.key')
   VALUE=$(echo ${var} | base64 -d | jq -r '.value')
-  ARGS='$ARGS -var "$KEY=$VALUE"'
-  echo "Setting variable $KEY=$VALUE"
+  ARGS="${ARGS} -var \"${KEY}=${VALUE}\""
+  echo "Setting variable ${KEY}=${VALUE}"
 done
 
 
