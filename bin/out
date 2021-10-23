@@ -47,11 +47,9 @@ done
 cd $(dirname $SRC/$TEMPLATE)
 
 echo "#!/bin/sh" >/tmp/cmd
-echo "packer build -machine-readable $ARGS $SRC/$TEMPLATE" >>/tmp/cmd
+echo "packer build -machine-readable -force $ARGS $SRC/$TEMPLATE" >>/tmp/cmd
 chmod a+x /tmp/cmd
-/tmp/cmd
-
-# | tee /tmp/output
+/tmp/cmd | tee /tmp/output
 # packer build -machine-readable $ARGS -var-file=/tmp/vars.json $SRC/$TEMPLATE \
 #  | awk -F, '/,ui,/ { print $5 }' | sed -u 's#%!(PACKER_COMMA)#,#g;s#\\n#\n#g'
 
